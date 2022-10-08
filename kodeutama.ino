@@ -1,4 +1,4 @@
-/*Catatan Peneliti
+/*Catatan 
   Program utama Project keamanan rumah dengan PLTS
   IBNUL SAHGIANTO 1901021076 UNIVERSITAS BUMIGORA MATARAM
   1901021076@universitasbumigora.ac.id
@@ -22,142 +22,212 @@
     Thingspeak : ( https://www.thingspeak.com ) adalah layanan platform integrasi untuk internet of things 
                  yang dimana dapat kita manfaatkan untuk mengaggregat, visualisasikan dan menaganalisa data secara langsung melalui cloud
                  kunjungi https://www.thingspeak.com untuk daftar dan membuat channel.
+
+    Web Peneliti : ( https://iot-iben.my.id ) dengan menggunakan layanan cloud dari cloudkilat.com peneliti menyewa untuk menggunakan layanan hosting
+                   dan domain serta database. layanan yang digunakan Cloud VM S. 
                 
     Copyright 2022, Ibnul Sahgianto, iben.
 */
 
-// Library
-#include <WiFi.h>
-#include "ThingSpeak.h"
-#include <ThingSpeak.h> 
-#include "get1iben.h"
-#include "password.h"
+// Library bungkus
+  #include <WiFi.h>
+  #include "ThingSpeak.h"
+  #include <ThingSpeak.h> 
+  #include "get1iben.h"
+  #include "password.h"
+  #include <WiFiClientSecure.h>
+  #include <UniversalTelegramBot.h>  
+  #include <ArduinoJson.h>
+// tutup library
 
-// Deklarasi PIN
-#define PIN_V_ARUS 34             
-#define PIN_V_TEG 35                 
-#define BANYAK_SAMPLING 20
-#define PIN_GAS 32
-#define PIN_FLAME 33
-#define PIN_JARAK 25  
+// Library Universal Telgram bot bungkus
+  #ifdef ESP8266
+    X509List cert(TELEGRAM_CERTIFICATE_ROOT);
+  #endif
+  #ifdef ESP32
+    #include <WiFi.h>
+  #else
+    #include <ESP8266WiFi.h>
+  #endif
+  #ifdef ESP8266
+    X509List cert(TELEGRAM_CERTIFICATE_ROOT);
+  #endif
+// tutup telegram library univ
 
 // Filler Akses point
-const char* ssid = ibena;   
-const char* password = pass_ibena;  
-unsigned long myChannelNumber = ch_id_1;
-const char * myWriteAPIKey = api_ch_1;
+  const char* ssid = ibena;   
+  const char* password = pass_ibena;  
+  const char * BOTtoken = token_bot;
+  const char *  CHAT_ID = cet_ID;
+// tutup filler
 
-// Variable sensor mencoba dengan nilai random sebelum implementasi ke sensor
-// PV
-float kondisi = random(0.0, 5.0);
-float pv_tegangan = random(5.0, 9.0);
-float pv_arus = random(1.4, 4.0);
-float pv_daya = random(1.4, 4.0);
+// Telegram pin
+  const int lampu = 5;
+  const int cipas = 18;
+  const int pompa = 19;
+  bool kampu = LOW;
+  bool kipas = LOW;
+  bool kompa = LOW;
+// tutup telegram pin
 
-// HS
-float gas = random(0.0, 1024.0);
-float flame = random(0.0, 1024.0);
-float jarak = random(0.0, 1024.0);
+// membuat object dari library get1iben.h
+  get1iben ciben;
+  WiFiClient client;
+  WiFiClientSecure klient;
+  UniversalTelegramBot bot(BOTtoken, klient);
+// tutup library iben
 
-// membuat object
-get1iben ciben;
-WiFiClient  client;
-
-// jeda waktu
-unsigned long lastTime = 0;
-unsigned long timerDelay = 30000;
-
-// STATUS
-String myStatus = "";
-String my2Status= "";
+// jeda waktu bungkus telegram
+  int botRequestDelay = 1000;
+  unsigned long lastTimeBotRan;
+// tutup jeda waktu
 
 // setup
 void setup() {
-  Serial.begin(115200);  
-  WiFi.mode(WIFI_STA);
-  ThingSpeak.begin(client);  
+  Serial.begin(115200);
+  //sertifikat web masing2 mikrokontroller bungkus
+    #ifdef ESP32
+      klient.setCACert(TELEGRAM_CERTIFICATE_ROOT); // Add root certificate for api.telegram.org
+    #endif
+    #ifdef ESP8266
+      configTime(0, 0, "pool.ntp.org");      // get UTC time via NTP
+      klient.setTrustAnchors(&cert); // Add root certificate for api.telegram.org
+    #endif
+  // sertifikat tutup
+  // pin telegram bungkus
+    pinMode(lampu, OUTPUT);
+    pinMode(cipas, OUTPUT);
+    pinMode(pompa, OUTPUT);
+    digitalWrite(lampu, kampu);
+    digitalWrite (cipas, kipas);
+    digitalWrite(pompa, kompa);
+  // pin telegram tutup 
+  // Wifi bungkus
+    WiFi.mode(WIFI_STA);
+    ThingSpeak.begin(client);
+  
+    if(WiFi.status() != WL_CONNECTED){
+        Serial.print("Menghubungkan......");
+        while(WiFi.status() != WL_CONNECTED){
+          WiFi.begin(ssid, password); 
+          delay(5000);     
+        } 
+        Serial.println("\nTerhubung.");
+      }
+    Serial.println(WiFi.localIP());
+  // Wifi Tutup
 }
 
 // loop
 void loop() {
-    if(WiFi.status() != WL_CONNECTED){
-      Serial.print("Menghubungkan......");
-      while(WiFi.status() != WL_CONNECTED){
-        WiFi.begin(ssid, password); 
-        delay(5000);     
-      } 
-      Serial.println("\nTerhubung.");
-    }
   // memanggil fungsi ciben
   ciben.baca_data();
-  ciben.print_data();
 
-  // set nilai ke setiap field
-  // solar panel
-  ThingSpeak.setField(1, kondisi);
-  ThingSpeak.setField(2, pv_tegangan);
-  ThingSpeak.setField(3, pv_arus);
-  ThingSpeak.setField(4, pv_daya);
+    // set telegram pesan respon bungkus
+      // telegram
+      if (millis() > lastTimeBotRan + botRequestDelay)  {
+        int nmrPesan = bot.getUpdates(bot.last_message_received + 1);
 
-  // sensor rumah
-  ThingSpeak.setField(5, gas);
-  ThingSpeak.setField(6, flame);
-  ThingSpeak.setField(7, jarak);
+        while(nmrPesan) {
+          Serial.println("Dapet respon : ");
+          pesanBaru(nmrPesan);
+          nmrPesan = bot.getUpdates(bot.last_message_received + 1);
+        }
+        lastTimeBotRan = millis();
+      }
+    // tutup telegram respon pesan
+}
 
-  // pesan status PV
-  if(pv_tegangan > 9.0)
-  {
-    myStatus = String("[ Tegangan overshoot ]"); 
-  }
-  else if(pv_tegangan < 5.0)
-  {
-    myStatus = String("[ Tegangan masuk rendah ]");
-  }
-  else
-  {
-    myStatus = String("[ Tegangan stabil ]");
-  }
-
-  // pesan status HS 
-  // GAS
-  if(gas > 900)
-  {
-    myStatus = String("[ Gas terdeteksi HIGH 2 ]");
-  }
-  else if(gas > 500)
-  {
-    myStatus = String("[ Gas terdeteksi HIGH 1 ]");
-  }
-
-  // FLAME
-  if(flame > 900)
-  {
-    myStatus = String("[ api terdeteksi HIGH 2 ]");
-  }
-  else if(flame > 500)
-  {
-    myStatus = String("[ api terdeteksi HIGH 1 ]");
-  }
-  
-  // JARAK
-  if(jarak < 300 && jarak > 200)
-  {
-    myStatus = String("[ objek terdeteksi mendekat 1 ]");
-  }
-  else if(jarak < 100)
-  {
-    myStatus = String("[ Gas terdeteksi mendekat 2 ]");
-  }
-
-  // set status pesan
-  // pesan status PV
-  ThingSpeak.setStatus(myStatus);
-    int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
-    if(x == 200){
-      Serial.println("Channel telah diperbaharui.");
+// Telegram pesan baru
+void pesanBaru(int nmrPesan) {
+  Serial.println("Pesan yang masuk");
+  Serial.println(String(nmrPesan));
+  for (int i=0; i<nmrPesan; i++) {
+    // id chat request
+    String chat_id = String(bot.messages[i].chat_id);
+    if (chat_id != CHAT_ID){
+      bot.sendMessage(chat_id, "Bzzzt", "");
+      continue;
     }
-    else{
-      Serial.println("Gagal memperbaharui . HTTP error code " + String(x));
+    
+    // cetak pesan yang masuk
+    String text = bot.messages[i].text;
+    Serial.println(text);
+
+    String from_name = bot.messages[i].from_name;
+
+    if (text == "/start") {
+      String welcome = "Selamat datang ! -=[ " + from_name + " ]=-.\n";
+      welcome += "Silahkan masukkan perintah sesuai dengan perintah di bawah.\n\n";
+      welcome += "/L1 untuk menghidupkan lampu \n";
+      welcome += "/L0 untuk mematikan lampu \n";
+      welcome += "/F1 untuk menghidupkan kipas \n";
+      welcome += "/F0 untuk mematikan kipas \n";
+      welcome += "/P1 untuk menghidupkan Pompa \n";
+      welcome += "/P0 untuk mematikan pompa \n";
+      welcome += "/status untuk mengetahui kondisi saat ini \n";
+      bot.sendMessage(chat_id, welcome, "");
     }
-  delay(20000);
+
+    // LAMPU
+    if (text == "/L1") {
+      bot.sendMessage(chat_id, "Lampu Hidup", "");
+      kampu = HIGH;
+      digitalWrite(lampu, kampu);
+    }
+    if (text == "/L0") {
+      bot.sendMessage(chat_id, "Lampu Mati", "");
+      kampu = LOW;
+      digitalWrite(lampu, kampu);
+    }
+    
+    // FAN
+    if (text == "/F1") {
+      bot.sendMessage(chat_id, "Kipas Hidup", "");
+      kipas = HIGH;
+      digitalWrite(cipas, kipas);
+    }
+    if (text == "/F0") {
+      bot.sendMessage(chat_id, "Kipas Mati", "");
+      kipas = LOW;
+      digitalWrite(cipas, kipas);
+    }
+    
+    // Pompa
+    if (text == "/P1") {
+      bot.sendMessage(chat_id, "Pompa Hidup", "");
+      kompa = HIGH;
+      digitalWrite(pompa, kompa);
+    }
+    if (text == "/P0") {
+      bot.sendMessage(chat_id, "Pompa Mati", "");
+      kompa = LOW;
+      digitalWrite(pompa, kompa);
+    }
+
+    // STATUS
+    if (text == "/status") {
+      // LAMPU
+      if (digitalRead(kampu==HIGH)){
+        bot.sendMessage(chat_id, "Lampu Hidup", "");
+      }
+      else{
+        bot.sendMessage(chat_id, "Lampu Mati", "");
+      }
+      // cipas
+      if (digitalRead(kipas==HIGH)){
+        bot.sendMessage(chat_id, "kipas Hidup", "");
+      }
+      else{
+        bot.sendMessage(chat_id, "kipas Mati", "");
+      }
+      // POMPA
+      if (digitalRead(kompa==HIGH)){
+        bot.sendMessage(chat_id, "Pompa Hidup", "");
+      }
+      else{
+        bot.sendMessage(chat_id, "Pompa Mati", "");
+      }
+    }
+  }
 }
