@@ -1,3 +1,6 @@
+//............ UPDATE 0.1
+//............ UPDATE SELASA 15 NOVEMBER 2022
+//............ UPDATE CODING UNTUK TELEGRAM TIAP PIN OUTPUT DIBALIK OUTPUTNYA DARI HIGH -> LOW
 /*Catatan 
   Program utama Project keamanan rumah dengan PLTS
   IBNUL SAHGIANTO 1901021076 UNIVERSITAS BUMIGORA MATARAM
@@ -63,10 +66,10 @@
 
 // Telegram pin
   const int lampu = 5;
-  const int cipas = 18;
-  const int pompa = 19;
+  const int kipas = 18;
+  const int pompa = 21;
   bool kampu = LOW;
-  bool kipas = LOW;
+  bool cipas = LOW;
   bool kompa = LOW;
 // tutup telegram pin
 
@@ -96,11 +99,8 @@ void setup() {
   // sertifikat tutup
   // pin telegram bungkus
     pinMode(lampu, OUTPUT);
-    pinMode(cipas, OUTPUT);
+    pinMode(kipas, OUTPUT);
     pinMode(pompa, OUTPUT);
-    digitalWrite(lampu, kampu);
-    digitalWrite (cipas, kipas);
-    digitalWrite(pompa, kompa);
   // pin telegram tutup 
   // Wifi bungkus
     WiFi.mode(WIFI_STA);
@@ -109,6 +109,7 @@ void setup() {
     if(WiFi.status() != WL_CONNECTED){
         Serial.print("Menghubungkan......");
         while(WiFi.status() != WL_CONNECTED){
+          bot.sendMessage(CHAT_ID, "Terhubung!", "");
           WiFi.begin(ssid, password); 
           delay(5000);     
         } 
@@ -122,7 +123,6 @@ void setup() {
 void loop() {
   // memanggil fungsi ciben
   ciben.baca_data();
-
     // set telegram pesan respon bungkus
       // telegram
       if (millis() > lastTimeBotRan + botRequestDelay)  {
@@ -163,70 +163,76 @@ void pesanBaru(int nmrPesan) {
       welcome += "/L0 untuk mematikan lampu \n";
       welcome += "/F1 untuk menghidupkan kipas \n";
       welcome += "/F0 untuk mematikan kipas \n";
-      welcome += "/P1 untuk menghidupkan Pompa \n";
-      welcome += "/P0 untuk mematikan pompa \n";
+      welcome += "/P1 untuk menghidupkan pompa/support \n";
+      welcome += "/P0 untuk mematikan pompa/support \n";
       welcome += "/status untuk mengetahui kondisi saat ini \n";
       bot.sendMessage(chat_id, welcome, "");
     }
 
     // LAMPU
-    if (text == "/L1") {
+    if (text == "/L0") {
       bot.sendMessage(chat_id, "Lampu Hidup", "");
       kampu = HIGH;
       digitalWrite(lampu, kampu);
+      Serial.print(kampu);
     }
-    if (text == "/L0") {
+    if (text == "/L1") {
       bot.sendMessage(chat_id, "Lampu Mati", "");
       kampu = LOW;
       digitalWrite(lampu, kampu);
+      Serial.print(kampu);
     }
     
     // FAN
-    if (text == "/F1") {
-      bot.sendMessage(chat_id, "Kipas Hidup", "");
-      kipas = HIGH;
-      digitalWrite(cipas, kipas);
-    }
     if (text == "/F0") {
+      bot.sendMessage(chat_id, "Kipas Hidup", "");
+      cipas = HIGH;
+      digitalWrite(kipas, cipas);
+      Serial.print(cipas);
+    }
+    if (text == "/F1") {
       bot.sendMessage(chat_id, "Kipas Mati", "");
-      kipas = LOW;
-      digitalWrite(cipas, kipas);
+      cipas = LOW;
+      digitalWrite(kipas, cipas);
+      Serial.print(cipas);
     }
     
     // Pompa
-    if (text == "/P1") {
-      bot.sendMessage(chat_id, "Pompa Hidup", "");
+    if (text == "/P0") {
+      bot.sendMessage(chat_id, "Pompa / Support tegangan Hidup", "");
       kompa = HIGH;
       digitalWrite(pompa, kompa);
+      Serial.print(kompa);
     }
-    if (text == "/P0") {
-      bot.sendMessage(chat_id, "Pompa Mati", "");
+    if (text == "/P1") {
+      bot.sendMessage(chat_id, "Pompa / Support tegangan Mati", "");
       kompa = LOW;
       digitalWrite(pompa, kompa);
+      Serial.print(kompa);
     }
 
     // STATUS
     if (text == "/status") {
       // LAMPU
       if (digitalRead(kampu==HIGH)){
-        bot.sendMessage(chat_id, "Lampu Hidup", "");
-      }
-      else{
         bot.sendMessage(chat_id, "Lampu Mati", "");
       }
-      // cipas
-      if (digitalRead(kipas==HIGH)){
-        bot.sendMessage(chat_id, "kipas Hidup", "");
+      else if(digitalRead(kampu==LOW)){
+        bot.sendMessage(chat_id, "Lampu Hidup", "");
       }
-      else{
+      // cipas
+      if (digitalRead(cipas==HIGH)){
         bot.sendMessage(chat_id, "kipas Mati", "");
+      }
+      else if(digitalRead(cipas==LOW)){
+        bot.sendMessage(chat_id, "kipas Hidup", "");
       }
       // POMPA
       if (digitalRead(kompa==HIGH)){
-        bot.sendMessage(chat_id, "Pompa Hidup", "");
+        bot.sendMessage(chat_id, "Pompa / Support tegangan Mati", "");
       }
-      else{
-        bot.sendMessage(chat_id, "Pompa Mati", "");
+      else if(digitalRead(kompa==LOW)){
+        bot.sendMessage(chat_id, "Pompa / Support tegangan Hidup", "");
       }
     }
   }
