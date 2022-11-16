@@ -24,5 +24,8 @@ project yang dimana kita memanfaatkan tenaga plts untuk keamanan rumah berbasisk
     Thingspeak : ( https://www.thingspeak.com ) adalah layanan platform integrasi untuk internet of things 
                  yang dimana dapat kita manfaatkan untuk mengaggregat, visualisasikan dan menaganalisa data secara langsung melalui cloud
                  kunjungi https://www.thingspeak.com untuk daftar dan membuat channel.
+
+    Web Peneliti : ( https://iot-iben.my.id ) dengan menggunakan layanan cloud dari cloudkilat.com peneliti menyewa untuk menggunakan layanan hosting
+                   dan domain serta database. layanan yang digunakan Cloud VM S. 
                 
     Copyright 2022, Ibnul Sahgianto, iben.
