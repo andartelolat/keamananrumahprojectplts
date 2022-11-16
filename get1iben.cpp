@@ -1,4 +1,3 @@
-
 // File CPP library bungkus
   // Library
   #include "Arduino.h"
@@ -13,6 +12,20 @@
   #include <ArduinoJson.h>
 // CPP tutup
 
+// Library Universal Telgram bot bungkus
+  #ifdef ESP8266
+    X509List cert(TELEGRAM_CERTIFICATE_ROOT);
+  #endif
+  #ifdef ESP32
+    #include <WiFi.h>
+  #else
+    #include <ESP8266WiFi.h>
+  #endif
+  #ifdef ESP8266
+    X509List cert(TELEGRAM_CERTIFICATE_ROOT);
+  #endif
+// tutup telegram library univ
+
 // Deklarasi PIN bungkus
   #define PIN_V_ARUS 34             
   #define PIN_V_TEG 35  
@@ -20,7 +33,8 @@
   #define PIN_FLAME 33
   #define PIN_JARAK_TRIG 25
   #define PIN_JARAK_ECHO 26
-  #define PIN_PINTU 19
+  #define PIN_PINTU 27
+  #define BUZZER 23
   #define kec_suara 0.034
   #define cm_ke_inch 0.393701
   #define offset 20
@@ -31,22 +45,41 @@
   get1iben::get1iben(){
     Serial.begin(115200); 
     pinMode(PIN_JARAK_TRIG, OUTPUT);
-    pinMode(PIN_JARAK_ECHO, INPUT);    
+    pinMode(PIN_JARAK_ECHO, INPUT);
+    pinMode(PIN_FLAME, INPUT);
+    pinMode(BUZZER, OUTPUT);
   }
 
   //destructor object
-  get1iben::~get1iben(){}
-// cd tutup
+    get1iben::~get1iben(){}
+  // cd tutup
 
-void get1iben::baca_data(void){
+void get1iben::baca_data(void) {
+  // Filler Akses point
+      const char* ssid = ibena;   
+      const char* password = pass_ibena;  
+      const char * BOTtoken = token_bot;
+      const char *  CHAT_ID = cet_ID;
+  // tutup filler
+  // membuat object dari library get1iben.h
+    get1iben ciben;
+    WiFiClient client;
+    WiFiClientSecure klient;
+    UniversalTelegramBot bot(BOTtoken, klient);
+  // tutup library iben
+  
+  // sertifikat
+    #ifdef ESP32
+      klient.setCACert(TELEGRAM_CERTIFICATE_ROOT); // Add root certificate for api.telegram.org
+    #endif
+    #ifdef ESP8266
+      configTime(0, 0, "pool.ntp.org");      // get UTC time via NTP
+      klient.setTrustAnchors(&cert); // Add root certificate for api.telegram.org
+    #endif
+  // sertifikat tutup
   // Channel dan API key
   unsigned long myChannelNumber = ch_id_1;
   const char * myWriteAPIKey = api_ch_1;
-
-  // jeda waktu
-    unsigned long lastTime = 0;
-    unsigned long timerDelay = 30000;
-  // tutup jeda waktu
 
   // bungkus pengukuran tegangan dan arus
     // Floats for ADC voltage & Input voltage
@@ -59,17 +92,19 @@ void get1iben::baca_data(void){
     // resep pembanding
     float R1 = 30000.0;
     float R2 = 7500.0;
-    const double faktor_pembanding = 0.006; // range sensor 30A 
+    int sensitivitas = 185; // range sensor 30A 
 
     // variable pengaturan pengukuran teg dan arus
+    int nilaiadc= 00;
+    int teganganoffset = 10;
+    double ceg = 00;
+    double nilaiarus = 00;
     float ref_voltage = 3.3;
-    float vref_arus = 3.3;
-    float resESP = 4095.0;
-    float res_adc = vref_arus/resESP;
-    float zeroPoint = ref_voltage/2;
 
-    teg_pv = (teg_pv + (res_adc*analogRead(PIN_V_ARUS)));
-    teg_pv = teg_pv / 1000;
+    // hitung adc arus
+    nilaiadc = analogRead(PIN_V_ARUS);
+    ceg = (nilaiadc / 2047.5) * 3.3;
+    
 
     // nilai adc untuk sensor teg
     int adc_value = 0;
@@ -82,18 +117,20 @@ void get1iben::baca_data(void){
     
     // hitung variable final teg, arus dan daya
     pv_tegangan = adc_voltage / (R2/(R1+R2)) + 0.59 ;
-    pv_arus = (teg_pv - zeroPoint) / faktor_pembanding;
-    pv_daya = pv_arus*pv_tegangan; 
+    // pv_arus = (teg_pv - ofcet) / faktor_pembanding;
+    nilaiarus = ((ceg - teganganoffset) / sensitivitas);
+    pv_daya = (nilaiarus+1.52)*pv_tegangan; 
   // tutup bungkus tegangan
 
   // bungkus pengukuran HS (gas, flame, jarak, pintu)
     //gas
-    float gas =0.0;
-    float batas_gas = 400.0;
+    float gas;
+    float batas_gas;
     gas = analogRead(PIN_GAS);
+    batas_gas = gas/4095*3.3;
     //api
-    float flame = 0.0;
-    flame = digitalRead(PIN_GAS);
+    bool flame;
+    flame = digitalRead(PIN_FLAME);
     //jarak
     long durasi;
     float jarak;
@@ -116,13 +153,14 @@ void get1iben::baca_data(void){
   // tutup variable sementara
   
   // cetak nilai sensor ke thingspeak
-  ThingSpeak.setField(1, temperatur);
-  ThingSpeak.setField(2, pv_tegangan);
-  ThingSpeak.setField(3, pv_arus);
-  ThingSpeak.setField(4, pv_daya);
-  ThingSpeak.setField(5, gas);
-  ThingSpeak.setField(6, flame);
-  ThingSpeak.setField(7, jarak);
+    ThingSpeak.setField(1, temperatur);
+    ThingSpeak.setField(2, pv_tegangan);
+    ThingSpeak.setField(3, pv_arus);
+    ThingSpeak.setField(4, pv_daya);
+    ThingSpeak.setField(5, batas_gas);
+    ThingSpeak.setField(6, flame);
+    ThingSpeak.setField(7, jarak);
+  // tutup cetak
 
   // bungkus status
       // pesan status PV
@@ -133,6 +171,7 @@ void get1iben::baca_data(void){
       if(pv_tegangan > 9.0)
       {
         myStatus = String("[ Tegangan overshoot ]"); 
+
       }
       else if(pv_tegangan < 5.0)
       {
@@ -145,37 +184,70 @@ void get1iben::baca_data(void){
 
       // pesan status HS 
       // GAS
-      if(gas > 900)
+      if(batas_gas > 1.5)
       {
         myStatus = String("[ Gas terdeteksi HIGH 2 ]");
       }
-      else if(gas > 500)
+      else if(batas_gas > 1.4)
       {
         myStatus = String("[ Gas terdeteksi HIGH 1 ]");
       }
 
       // FLAME
-      if(flame > 900)
+      if(flame >= 1)
       {
-        myStatus = String("[ api terdeteksi HIGH 2 ]");
+        myStatus = String("[ api terdeteksi ]");
+        Serial.println("[ API TERDETEKSI ]");
+        digitalWrite(BUZZER, HIGH);
+        delay(300);
+        digitalWrite(BUZZER, LOW);
+        delay(300);
+        digitalWrite(BUZZER, HIGH);
+        delay(300);
+        digitalWrite(BUZZER, LOW);
+        delay(300);
+        digitalWrite(BUZZER, HIGH);
+        delay(300);
+        digitalWrite(BUZZER, LOW);
+        delay(300);
       }
-      else if(flame > 500)
+      else if(flame <= 0)
       {
-        myStatus = String("[ api terdeteksi HIGH 1 ]");
+        myStatus = String("[ tidak ada api ] ]");
       }
       
       // JARAK
-      if(jarak < 300 && jarak > 200)
+      if(jarak > 12 && jarak < 17)
       {
         myStatus = String("[ objek terdeteksi mendekat 1 ]");
+        bot.sendMessage(CHAT_ID, "ada objek mendekat", "");
+        digitalWrite(BUZZER, HIGH);
+        delay(500);
+        digitalWrite(BUZZER, LOW);
+        delay(100);
       }
-      else if(jarak < 100)
+      else if(jarak < 6)
       {
-        myStatus = String("[ Gas terdeteksi mendekat 2 ]");
+        myStatus = String("[ objek terdeteksi mendekat 2 ]");
+        bot.sendMessage(CHAT_ID, "ada objek terdeksi" , "");
+        Serial.println("[ OBJEK TERDETEKSI ]");
+        digitalWrite(BUZZER, HIGH);
+        delay(1000);
+        digitalWrite(BUZZER, LOW);
+        delay(500);
       }
+
       // Pintu
       if (kond_pintu == HIGH){
         myStatus = String("Pintu terbuka");
+        bot.sendMessage(CHAT_ID, "pintu terbuka", "");
+        digitalWrite(BUZZER, HIGH);
+        delay(2000);
+        digitalWrite(BUZZER, LOW);
+        delay(2000);
+        digitalWrite(BUZZER, HIGH);
+        delay(1000);
+        digitalWrite(BUZZER, LOW); 
       }
       else {
         myStatus = String("Pintu tertutup");
@@ -191,7 +263,7 @@ void get1iben::baca_data(void){
         else{
           Serial.println("Gagal memperbaharui . HTTP error code " + String(x));
         }
-      delay(20000);
+      delay(1000);
   // tutup bungkus status
   // bungkus print data
     Serial.println("=========================================================================================");
@@ -202,29 +274,43 @@ void get1iben::baca_data(void){
     Serial.print("  |  ");
 
     Serial.print("arus terbaca : ");
-    Serial.print(pv_arus, 2);
+    Serial.print(nilaiarus, 3);
     Serial.print(" Ampere");
     Serial.print("  |  ");
 
-    Serial.print("Daya Terbawa : ");
-    Serial.print(pv_daya, 2);
+    Serial.print("Daya Terbaca : ");
+    Serial.print(pv_daya, 3);
     Serial.println(" Watt");
 
     Serial.println("=========================================================================================");
     
     Serial.print("Nilai gas : ");
-    Serial.print(gas);
+    Serial.print(batas_gas);
     Serial.print(" Analog");
     Serial.print("  |  ");
 
-    Serial.print("Nilai flame : ");
-    Serial.print(flame);
-    Serial.print(" Analog");
+    Serial.print("Detektor api : ");
+    if (flame==0) {
+      Serial.print("Ada api");
+    }
+    else if (flame ==1) {
+      Serial.print("Api tidak terdeteksi");
+    }
     Serial.print("  |  ");
 
     Serial.print("Nilai jarak : ");
     Serial.print(jarak);
-    Serial.println(" cm");
+    Serial.print(" cm ");
+    Serial.print("  |  ");
+
+    Serial.print("kondisi pintu : ");
+    if (kond_pintu==1) {
+      Serial.print("pintu terbuka");
+    }
+    else if (kond_pintu ==0) {
+      Serial.print("pintu tertutup");
+    }
+    Serial.println(" ");
 
     Serial.print("Nilai jarak : ");
     Serial.print(jar_inch);
@@ -240,6 +326,6 @@ void get1iben::baca_data(void){
       // gas = random(0,1024);
       // flame = random(0,1024);
       // jarak = random(0,1024);
-      delay(20000);
+      delay(1000);
   // tutup ganti nilai
 }
