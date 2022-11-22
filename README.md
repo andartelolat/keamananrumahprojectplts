@@ -35,3 +35,10 @@ project yang dimana kita memanfaatkan tenaga plts untuk keamanan rumah berbasisk
 //............ UPDATE SELASA 15 NOVEMBER 2022
 
 //............ UPDATE CODING UNTUK TELEGRAM TIAP PIN OUTPUT DIBALIK OUTPUTNYA DARI HIGH -> LOW
+//............ UPDATE 0.2
+
+//............ UPDATE SELASA 22 NOVEMBER 2022
+
+//............ Update ganti parameter pada sensor jarak dan api 
+
+//............ Fix pesan teks pada telegram 
