@@ -1,6 +1,10 @@
 //............ UPDATE 0.1
 //............ UPDATE SELASA 15 NOVEMBER 2022
 //............ UPDATE CODING UNTUK TELEGRAM TIAP PIN OUTPUT DIBALIK OUTPUTNYA DARI HIGH -> LOW
+//............ UPDATE 0.2
+//............ UPDATE SELASA 22 NOVEMBER 2022
+//............ Update ganti parameter pada sensor jarak dan api 
+//............ Fix pesan teks pada telegram 
 /*Catatan 
   Program utama Project keamanan rumah dengan PLTS
   IBNUL SAHGIANTO 1901021076 UNIVERSITAS BUMIGORA MATARAM
@@ -159,12 +163,12 @@ void pesanBaru(int nmrPesan) {
     if (text == "/start") {
       String welcome = "Selamat datang ! -=[ " + from_name + " ]=-.\n";
       welcome += "Silahkan masukkan perintah sesuai dengan perintah di bawah.\n\n";
-      welcome += "/L1 untuk menghidupkan lampu \n";
-      welcome += "/L0 untuk mematikan lampu \n";
-      welcome += "/F1 untuk menghidupkan kipas \n";
-      welcome += "/F0 untuk mematikan kipas \n";
-      welcome += "/P1 untuk menghidupkan pompa/support \n";
-      welcome += "/P0 untuk mematikan pompa/support \n";
+      welcome += "/L1 untuk mematikan lampu \n";
+      welcome += "/L0 untuk menghidupkan lampu \n";
+      welcome += "/F1 untuk mematikan kipas \n";
+      welcome += "/F0 untuk menghidupkan kipas \n";
+      welcome += "/P1 untuk mematikan pompa/support \n";
+      welcome += "/P0 untuk menghidupkan pompa/support \n";
       welcome += "/status untuk mengetahui kondisi saat ini \n";
       bot.sendMessage(chat_id, welcome, "");
     }
