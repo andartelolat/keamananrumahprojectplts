@@ -184,17 +184,17 @@ void get1iben::baca_data(void) {
 
       // pesan status HS 
       // GAS
-      if(batas_gas > 1.5)
+      if(batas_gas > 1.5 && batas_gas < 1.7)
       {
         myStatus = String("[ Gas terdeteksi HIGH 2 ]");
       }
-      else if(batas_gas > 1.4)
+      else if(batas_gas > 1.4 && batas < 1.5)
       {
         myStatus = String("[ Gas terdeteksi HIGH 1 ]");
       }
 
       // FLAME
-      if(flame >= 1)
+      if(flame >= 0)
       {
         myStatus = String("[ api terdeteksi ]");
         Serial.println("[ API TERDETEKSI ]");
@@ -211,7 +211,7 @@ void get1iben::baca_data(void) {
         digitalWrite(BUZZER, LOW);
         delay(300);
       }
-      else if(flame <= 0)
+      else if(flame <= 1)
       {
         myStatus = String("[ tidak ada api ] ]");
       }
@@ -226,7 +226,7 @@ void get1iben::baca_data(void) {
         digitalWrite(BUZZER, LOW);
         delay(100);
       }
-      else if(jarak < 6)
+      else if(jarak < 6 && jarak > 2)
       {
         myStatus = String("[ objek terdeteksi mendekat 2 ]");
         bot.sendMessage(CHAT_ID, "ada objek terdeksi" , "");
