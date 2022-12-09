@@ -42,3 +42,11 @@ project yang dimana kita memanfaatkan tenaga plts untuk keamanan rumah berbasisk
 //............ Update ganti parameter pada sensor jarak dan api 
 
 //............ Fix pesan teks pada telegram 
+
+//............ UPDATE 0.3
+
+//............ UPDATE JUMAT 9 DESEMBER 2022
+
+//............ Update pin untuk kendali servo pintu
+
+//............ update pin telegram kontrol servo
