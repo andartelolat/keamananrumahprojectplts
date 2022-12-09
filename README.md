@@ -29,7 +29,7 @@ project yang dimana kita memanfaatkan tenaga plts untuk keamanan rumah berbasisk
                    dan domain serta database. layanan yang digunakan Cloud VM S. 
                 
     Copyright 2022, Ibnul Sahgianto, iben.
-==================================================    
+==================================================
 //............ 
 UPDATE 0.1
 -------------------------
