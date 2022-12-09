@@ -5,6 +5,10 @@
 //............ UPDATE SELASA 22 NOVEMBER 2022
 //............ Update ganti parameter pada sensor jarak dan api 
 //............ Fix pesan teks pada telegram 
+//............ UPDATE 0.3
+//............ UPDATE JUMAT 9 DESEMBER 2022
+//............ Update pin untuk kendali servo pintu
+//............ update pin telegram kontrol servo
 /*Catatan 
   Program utama Project keamanan rumah dengan PLTS
   IBNUL SAHGIANTO 1901021076 UNIVERSITAS BUMIGORA MATARAM
@@ -45,6 +49,7 @@
   #include <WiFiClientSecure.h>
   #include <UniversalTelegramBot.h>  
   #include <ArduinoJson.h>
+  #include <ESP32_Servo.h>
 // tutup library
 
 // Library Universal Telgram bot bungkus
@@ -69,7 +74,9 @@
 // tutup filler
 
 // Telegram pin
+  Servo pintu;
   const int lampu = 5;
+  const int pervo = 19;
   const int kipas = 18;
   const int pompa = 21;
   bool kampu = LOW;
@@ -102,6 +109,7 @@ void setup() {
     #endif
   // sertifikat tutup
   // pin telegram bungkus
+    pintu.attach(pervo);
     pinMode(lampu, OUTPUT);
     pinMode(kipas, OUTPUT);
     pinMode(pompa, OUTPUT);
@@ -169,20 +177,21 @@ void pesanBaru(int nmrPesan) {
       welcome += "/F0 untuk menghidupkan kipas \n";
       welcome += "/P1 untuk mematikan pompa/support \n";
       welcome += "/P0 untuk menghidupkan pompa/support \n";
-      welcome += "/status untuk mengetahui kondisi saat ini \n";
+      welcome += "/K0 untuk membuka pintu \n";
+      welcome += "/K1 untuk menutup pintu \n";
       bot.sendMessage(chat_id, welcome, "");
     }
 
     // LAMPU
     if (text == "/L0") {
       bot.sendMessage(chat_id, "Lampu Hidup", "");
-      kampu = HIGH;
+      kampu = LOW;
       digitalWrite(lampu, kampu);
       Serial.print(kampu);
     }
     if (text == "/L1") {
       bot.sendMessage(chat_id, "Lampu Mati", "");
-      kampu = LOW;
+      kampu = HIGH;
       digitalWrite(lampu, kampu);
       Serial.print(kampu);
     }
@@ -190,54 +199,40 @@ void pesanBaru(int nmrPesan) {
     // FAN
     if (text == "/F0") {
       bot.sendMessage(chat_id, "Kipas Hidup", "");
-      cipas = HIGH;
+      cipas = LOW;
       digitalWrite(kipas, cipas);
       Serial.print(cipas);
     }
     if (text == "/F1") {
       bot.sendMessage(chat_id, "Kipas Mati", "");
-      cipas = LOW;
+      cipas = HIGH;
       digitalWrite(kipas, cipas);
       Serial.print(cipas);
     }
-    
     // Pompa
     if (text == "/P0") {
       bot.sendMessage(chat_id, "Pompa / Support tegangan Hidup", "");
-      kompa = HIGH;
+      kompa = LOW;
       digitalWrite(pompa, kompa);
       Serial.print(kompa);
     }
     if (text == "/P1") {
       bot.sendMessage(chat_id, "Pompa / Support tegangan Mati", "");
-      kompa = LOW;
+      kompa = HIGH;
       digitalWrite(pompa, kompa);
       Serial.print(kompa);
     }
 
-    // STATUS
-    if (text == "/status") {
-      // LAMPU
-      if (digitalRead(kampu==HIGH)){
-        bot.sendMessage(chat_id, "Lampu Mati", "");
-      }
-      else if(digitalRead(kampu==LOW)){
-        bot.sendMessage(chat_id, "Lampu Hidup", "");
-      }
-      // cipas
-      if (digitalRead(cipas==HIGH)){
-        bot.sendMessage(chat_id, "kipas Mati", "");
-      }
-      else if(digitalRead(cipas==LOW)){
-        bot.sendMessage(chat_id, "kipas Hidup", "");
-      }
-      // POMPA
-      if (digitalRead(kompa==HIGH)){
-        bot.sendMessage(chat_id, "Pompa / Support tegangan Mati", "");
-      }
-      else if(digitalRead(kompa==LOW)){
-        bot.sendMessage(chat_id, "Pompa / Support tegangan Hidup", "");
-      }
+    // Pintu
+    if (text == "/K0") {
+      bot.sendMessage(chat_id, "Kunci Pintu terbuka", "");
+      pintu.write(90);
     }
+    if (text == "/K1") {
+      bot.sendMessage(chat_id, "Kunci pintu tertutup", "");
+      pintu.write(0);
+    }
+
   }
+  
 }
