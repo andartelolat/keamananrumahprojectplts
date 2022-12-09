@@ -30,8 +30,7 @@ project yang dimana kita memanfaatkan tenaga plts untuk keamanan rumah berbasisk
                 
     Copyright 2022, Ibnul Sahgianto, iben.
 ==================================================
-//............ 
-UPDATE 0.1
+//............ UPDATE 0.1
 -------------------------
 
 //............ UPDATE SELASA 15 NOVEMBER 2022
@@ -39,8 +38,7 @@ UPDATE 0.1
 //............ UPDATE CODING UNTUK TELEGRAM TIAP PIN OUTPUT DIBALIK OUTPUTNYA DARI HIGH -> LOW
 
 ==================================================
-//............ 
-UPDATE 0.2
+//............ UPDATE 0.2
 --------------------------
 
 //............ UPDATE SELASA 22 NOVEMBER 2022
@@ -50,8 +48,7 @@ UPDATE 0.2
 //............ Fix pesan teks pada telegram 
 
 ==================================================
-//............ 
-UPDATE 0.3
+//............ UPDATE 0.3
 -------------------------
 
 //............ UPDATE JUMAT 9 DESEMBER 2022
