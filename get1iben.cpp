@@ -35,6 +35,7 @@
   #define PIN_JARAK_ECHO 26
   #define PIN_PINTU 27
   #define BUZZER 23
+  // #define suhu 
   #define kec_suara 0.034
   #define cm_ke_inch 0.393701
   #define offset 20
@@ -168,73 +169,63 @@ void get1iben::baca_data(void) {
       String myStatus = "";
       String my2Status= "";
 
-      if(pv_tegangan > 9.0)
-      {
-        myStatus = String("[ Tegangan overshoot ]"); 
+      // if(pv_tegangan > 9.0)
+      // {
+      //   myStatus = String("[ Tegangan overshoot ]"); 
 
-      }
-      else if(pv_tegangan < 5.0)
-      {
-        myStatus = String("[ Tegangan masuk rendah ]");
-      }
-      else
-      {
-        myStatus = String("[ Tegangan stabil ]");
-      }
+      // }
+      // else if(pv_tegangan < 5.0)
+      // {
+      //   myStatus = String("[ Tegangan masuk rendah ]");
+      // }
+      // else
+      // {
+      //   myStatus = String("[ Tegangan stabil ]");
+      // }
 
       // pesan status HS 
       // GAS
-      if(batas_gas > 1.5 && batas_gas < 1.7)
+      if(batas_gas > 1.2 && batas_gas < 1.9)
       {
         myStatus = String("[ Gas terdeteksi HIGH 2 ]");
       }
-      else if(batas_gas > 1.4 && batas < 1.5)
-      {
-        myStatus = String("[ Gas terdeteksi HIGH 1 ]");
-      }
+      // else if(batas_gas > 1.4 && batas_gas < 1.5)
+      // {
+      //   myStatus = String("[ Gas terdeteksi HIGH 1 ]");
+      // }
 
       // FLAME
-      if(flame >= 0)
+      if(flame == 0)
       {
         myStatus = String("[ api terdeteksi ]");
-        Serial.println("[ API TERDETEKSI ]");
+        bot.sendMessage(CHAT_ID, "ada api", "");
         digitalWrite(BUZZER, HIGH);
         delay(300);
         digitalWrite(BUZZER, LOW);
-        delay(300);
-        digitalWrite(BUZZER, HIGH);
-        delay(300);
-        digitalWrite(BUZZER, LOW);
-        delay(300);
-        digitalWrite(BUZZER, HIGH);
-        delay(300);
-        digitalWrite(BUZZER, LOW);
-        delay(300);
       }
-      else if(flame <= 1)
-      {
-        myStatus = String("[ tidak ada api ] ]");
-      }
+      // else if(flame == 1)
+      // {
+      //   myStatus = String("[ tidak ada api ] ]");
+      // }
       
       // JARAK
-      if(jarak > 12 && jarak < 17)
+      if(jarak > 7 && jarak < 10)
       {
         myStatus = String("[ objek terdeteksi mendekat 1 ]");
         bot.sendMessage(CHAT_ID, "ada objek mendekat", "");
         digitalWrite(BUZZER, HIGH);
         delay(500);
         digitalWrite(BUZZER, LOW);
-        delay(100);
       }
       else if(jarak < 6 && jarak > 2)
       {
-        myStatus = String("[ objek terdeteksi mendekat 2 ]");
-        bot.sendMessage(CHAT_ID, "ada objek terdeksi" , "");
+        myStatus = String("[ objek terdeteksi lebih mendekat 2 ]");
+        bot.sendMessage(CHAT_ID, "ada objek semakin mendekat" , "");
         Serial.println("[ OBJEK TERDETEKSI ]");
         digitalWrite(BUZZER, HIGH);
-        delay(1000);
-        digitalWrite(BUZZER, LOW);
         delay(500);
+        digitalWrite(BUZZER, LOW);
+        // delay(500);
       }
 
       // Pintu
@@ -242,16 +233,16 @@ void get1iben::baca_data(void) {
         myStatus = String("Pintu terbuka");
         bot.sendMessage(CHAT_ID, "pintu terbuka", "");
         digitalWrite(BUZZER, HIGH);
-        delay(2000);
+        delay(500);
         digitalWrite(BUZZER, LOW);
-        delay(2000);
-        digitalWrite(BUZZER, HIGH);
-        delay(1000);
-        digitalWrite(BUZZER, LOW); 
+        // delay(2000);
+        // digitalWrite(BUZZER, HIGH);
+        // delay(1000);
+        // digitalWrite(BUZZER, LOW); 
       }
-      else {
-        myStatus = String("Pintu tertutup");
-      }
+      // else {
+      //   myStatus = String("Pintu tertutup");
+      // }
     
       // set status pesan
       // pesan status PV
@@ -266,57 +257,57 @@ void get1iben::baca_data(void) {
       delay(1000);
   // tutup bungkus status
   // bungkus print data
-    Serial.println("=========================================================================================");
+    // Serial.println("=========================================================================================");
 
-    Serial.print("tegangan terbaca : ");
-    Serial.print(pv_tegangan, 2);
-    Serial.print(" Volt");
-    Serial.print("  |  ");
+    // Serial.print("tegangan terbaca : ");
+    // Serial.print(pv_tegangan, 2);
+    // Serial.print(" Volt");
+    // Serial.print("  |  ");
 
-    Serial.print("arus terbaca : ");
-    Serial.print(nilaiarus, 3);
-    Serial.print(" Ampere");
-    Serial.print("  |  ");
+    // Serial.print("arus terbaca : ");
+    // Serial.print(nilaiarus, 3);
+    // Serial.print(" Ampere");
+    // Serial.print("  |  ");
 
-    Serial.print("Daya Terbaca : ");
-    Serial.print(pv_daya, 3);
-    Serial.println(" Watt");
+    // Serial.print("Daya Terbaca : ");
+    // Serial.print(pv_daya, 3);
+    // Serial.println(" Watt");
 
-    Serial.println("=========================================================================================");
+    // Serial.println("=========================================================================================");
     
-    Serial.print("Nilai gas : ");
-    Serial.print(batas_gas);
-    Serial.print(" Analog");
-    Serial.print("  |  ");
+    // Serial.print("Nilai gas : ");
+    // Serial.print(batas_gas);
+    // Serial.print(" Analog");
+    // Serial.print("  |  ");
 
-    Serial.print("Detektor api : ");
-    if (flame==0) {
-      Serial.print("Ada api");
-    }
-    else if (flame ==1) {
-      Serial.print("Api tidak terdeteksi");
-    }
-    Serial.print("  |  ");
+    // Serial.print("Detektor api : ");
+    // if (flame==0) {
+    //   Serial.print("Ada api");
+    // }
+    // else if (flame ==1) {
+    //   Serial.print("Api tidak terdeteksi");
+    // }
+    // Serial.print("  |  ");
 
-    Serial.print("Nilai jarak : ");
-    Serial.print(jarak);
-    Serial.print(" cm ");
-    Serial.print("  |  ");
+    // Serial.print("Nilai jarak : ");
+    // Serial.print(jarak);
+    // Serial.print(" cm ");
+    // Serial.print("  |  ");
 
-    Serial.print("kondisi pintu : ");
-    if (kond_pintu==1) {
-      Serial.print("pintu terbuka");
-    }
-    else if (kond_pintu ==0) {
-      Serial.print("pintu tertutup");
-    }
-    Serial.println(" ");
+    // Serial.print("kondisi pintu : ");
+    // if (kond_pintu==1) {
+    //   Serial.print("pintu terbuka");
+    // }
+    // else if (kond_pintu ==0) {
+    //   Serial.print("pintu tertutup");
+    // }
+    // Serial.println(" ");
 
-    Serial.print("Nilai jarak : ");
-    Serial.print(jar_inch);
-    Serial.println(" inch");
+    // Serial.print("Nilai jarak : ");
+    // Serial.print(jar_inch);
+    // Serial.println(" inch");
 
-    Serial.println("=========================================================================================");
+    // Serial.println("=========================================================================================");
   // tutup bungkus print data
   // ganti nilai perhitungan sementara
       // temperatur++;
