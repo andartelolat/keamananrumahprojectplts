@@ -58,3 +58,8 @@ project yang dimana kita memanfaatkan tenaga plts untuk keamanan rumah berbasisk
 //............ update pin telegram kontrol servo
 
 ===================================================
+//............ UPDATE 0.4
+-------------------------
+
+//............ update pembaharuan coding nonaktifkan serial print dan non aktifkan beberapa buzzer
+===================================================
