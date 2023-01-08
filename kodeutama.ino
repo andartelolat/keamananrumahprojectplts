@@ -9,6 +9,8 @@
 //............ UPDATE JUMAT 9 DESEMBER 2022
 //............ Update pin untuk kendali servo pintu
 //............ update pin telegram kontrol servo
+//............ UPDATE 0.4 
+//............ update pembaharuan coding nonaktifkan serial print dan non aktifkan beberapa buzzer
 /*Catatan 
   Program utama Project keamanan rumah dengan PLTS
   IBNUL SAHGIANTO 1901021076 UNIVERSITAS BUMIGORA MATARAM
