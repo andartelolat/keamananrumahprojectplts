@@ -27,7 +27,7 @@
 // tutup telegram library univ
 
 // Deklarasi PIN bungkus
-  #define PIN_V_ARUS 34             
+  // #define PIN_V_ARUS 34             
   #define PIN_V_TEG 35  
   #define PIN_GAS 32
   #define PIN_FLAME 33
@@ -49,11 +49,13 @@
     pinMode(PIN_JARAK_ECHO, INPUT);
     pinMode(PIN_FLAME, INPUT);
     pinMode(BUZZER, OUTPUT);
+    pinMode(PIN_PINTU, INPUT_PULLUP);
   }
 
   //destructor object
     get1iben::~get1iben(){}
   // cd tutup
+// Construct tutup
 
 void get1iben::baca_data(void) {
   // Filler Akses point
@@ -87,8 +89,8 @@ void get1iben::baca_data(void) {
     float adc_voltage = 0.0;
     float pv_tegangan = 0.0;
     float teg_pv = 0.0;
-    float pv_arus = 0.0;
-    float pv_daya = 0.0;
+    // float pv_arus = 0.0;
+    // float pv_daya = 0.0;
 
     // resep pembanding
     float R1 = 30000.0;
@@ -103,8 +105,8 @@ void get1iben::baca_data(void) {
     float ref_voltage = 3.3;
 
     // hitung adc arus
-    nilaiadc = analogRead(PIN_V_ARUS);
-    ceg = (nilaiadc / 2047.5) * 3.3;
+    // nilaiadc = analogRead(PIN_V_ARUS);
+    // ceg = (nilaiadc / 2047.5) * 3.3;
     
 
     // nilai adc untuk sensor teg
@@ -119,16 +121,17 @@ void get1iben::baca_data(void) {
     // hitung variable final teg, arus dan daya
     pv_tegangan = adc_voltage / (R2/(R1+R2)) + 0.59 ;
     // pv_arus = (teg_pv - ofcet) / faktor_pembanding;
-    nilaiarus = ((ceg - teganganoffset) / sensitivitas);
-    pv_daya = (nilaiarus+1.52)*pv_tegangan; 
+    // nilaiarus = ((ceg - teganganoffset) / sensitivitas);
+    // pv_daya = (nilaiarus+1.52)*pv_tegangan; 
   // tutup bungkus tegangan
 
   // bungkus pengukuran HS (gas, flame, jarak, pintu)
     //gas
     float gas;
-    float batas_gas;
+    // float batas_gas;
     gas = analogRead(PIN_GAS);
-    batas_gas = gas/4095*3.3;
+    float batas_gas=gas;
+    // batas_gas = gas*(4095/3.3);
     //api
     bool flame;
     flame = digitalRead(PIN_FLAME);
@@ -150,16 +153,16 @@ void get1iben::baca_data(void) {
   // tutup pengukuran hs
 
   // isian variable sementara bungkus
-    float temperatur = random(1, 20);
+    // float temperatur = random(1, 20);
   // tutup variable sementara
   
   // cetak nilai sensor ke thingspeak
-    ThingSpeak.setField(1, temperatur);
+    // ThingSpeak.setField(1, temperatur);
     ThingSpeak.setField(2, pv_tegangan);
-    ThingSpeak.setField(3, pv_arus);
-    ThingSpeak.setField(4, pv_daya);
+    // ThingSpeak.setField(3, pv_arus);
+    // ThingSpeak.setField(4, pv_daya);
     ThingSpeak.setField(5, batas_gas);
-    ThingSpeak.setField(6, flame);
+    // ThingSpeak.setField(6, flame);
     ThingSpeak.setField(7, jarak);
   // tutup cetak
 
@@ -185,9 +188,13 @@ void get1iben::baca_data(void) {
 
       // pesan status HS 
       // GAS
-      if(batas_gas > 1.2 && batas_gas < 1.9)
+      if(batas_gas > 200)
       {
-        myStatus = String("[ Gas terdeteksi HIGH 2 ]");
+        myStatus = String("[ Gas terdeteksi  ]");
+        bot.sendMessage(CHAT_ID, "Ada gas! apakah mau mengaktifkan kipas? ketuk [ /F0 ] jika mau mengaktifkan kipas", "");
+        digitalWrite(BUZZER, HIGH);
+        delay(500);
+        digitalWrite(BUZZER, LOW);
       }
       // else if(batas_gas > 1.4 && batas_gas < 1.5)
       // {
@@ -198,7 +205,7 @@ void get1iben::baca_data(void) {
       if(flame == 0)
       {
         myStatus = String("[ api terdeteksi ]");
-        bot.sendMessage(CHAT_ID, "ada api", "");
+        bot.sendMessage(CHAT_ID, "ada api! apakah mau mengaktifkan pompa? ketuk [ /P0 ] jika mau mengaktifkan pompa", "");
         digitalWrite(BUZZER, HIGH);
         delay(300);
         digitalWrite(BUZZER, LOW);
@@ -212,7 +219,7 @@ void get1iben::baca_data(void) {
       if(jarak > 7 && jarak < 10)
       {
         myStatus = String("[ objek terdeteksi mendekat 1 ]");
-        bot.sendMessage(CHAT_ID, "ada objek mendekat", "");
+        bot.sendMessage(CHAT_ID, "ada objek mendekat ruangan simpan", "");
         digitalWrite(BUZZER, HIGH);
         delay(500);
         digitalWrite(BUZZER, LOW);
@@ -220,7 +227,7 @@ void get1iben::baca_data(void) {
       else if(jarak < 6 && jarak > 2)
       {
         myStatus = String("[ objek terdeteksi lebih mendekat 2 ]");
-        bot.sendMessage(CHAT_ID, "ada objek semakin mendekat" , "");
+        bot.sendMessage(CHAT_ID, "ada objek semakin mendekati ruangan simpan!" , "");
         Serial.println("[ OBJEK TERDETEKSI ]");
         digitalWrite(BUZZER, HIGH);
         delay(500);
