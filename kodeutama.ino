@@ -9,8 +9,19 @@
 //............ UPDATE JUMAT 9 DESEMBER 2022
 //............ Update pin untuk kendali servo pintu
 //............ update pin telegram kontrol servo
-//............ UPDATE 0.4 
+//............ UPDATE 0.4
+//............ Update MINGGU 8 Januari 2023
 //............ update pembaharuan coding nonaktifkan serial print dan non aktifkan beberapa buzzer
+//............ UPDATE 0.5
+//............ UPDATE SELASA 10 Januari 2023
+//............ update verifikasi ulang untuk mengaktifkan pompa dan kipas jika terdeteksi gas atau api.
+//............ UPDATE 0.6
+//............ UPDATE KAMIS 12 Januari 2023
+//............ UPDATE penambahan parameter lampu thingspeak
+//............ UPDATE 0.7
+//............ UPDATE Rabu 25 Januari 2023
+//............ UPDATE nonaktifin beberapa parameter tegangan dan arus dan revisi coding untuk sensor gas dan minimalisir penggunaan memori
+
 /*Catatan 
   Program utama Project keamanan rumah dengan PLTS
   IBNUL SAHGIANTO 1901021076 UNIVERSITAS BUMIGORA MATARAM
@@ -81,9 +92,9 @@
   const int pervo = 19;
   const int kipas = 18;
   const int pompa = 21;
-  bool kampu = LOW;
-  bool cipas = LOW;
-  bool kompa = LOW;
+  bool kampu = HIGH;
+  bool cipas = HIGH;
+  bool kompa = HIGH;
 // tutup telegram pin
 
 // membuat object dari library get1iben.h
@@ -123,7 +134,7 @@ void setup() {
     if(WiFi.status() != WL_CONNECTED){
         Serial.print("Menghubungkan......");
         while(WiFi.status() != WL_CONNECTED){
-          bot.sendMessage(CHAT_ID, "Terhubung!", "");
+          // bot.sendMessage(CHAT_ID, "Terhubung!", "");
           WiFi.begin(ssid, password); 
           delay(5000);     
         } 
@@ -159,10 +170,10 @@ void pesanBaru(int nmrPesan) {
   for (int i=0; i<nmrPesan; i++) {
     // id chat request
     String chat_id = String(bot.messages[i].chat_id);
-    if (chat_id != CHAT_ID){
-      bot.sendMessage(chat_id, "Bzzzt", "");
-      continue;
-    }
+    // if (chat_id != CHAT_ID){
+    //   bot.sendMessage(chat_id, "Bzzzt", "");
+    //   continue;
+    // }
     
     // cetak pesan yang masuk
     String text = bot.messages[i].text;
@@ -179,20 +190,24 @@ void pesanBaru(int nmrPesan) {
       welcome += "/F0 untuk menghidupkan kipas \n";
       welcome += "/P1 untuk mematikan pompa/support \n";
       welcome += "/P0 untuk menghidupkan pompa/support \n";
-      welcome += "/K0 untuk membuka pintu \n";
-      welcome += "/K1 untuk menutup pintu \n";
+      welcome += "/K0 untuk membuka kunci pintu \n";
+      welcome += "/K1 untuk menutup kunci pintu \n";
       bot.sendMessage(chat_id, welcome, "");
     }
 
     // LAMPU
     if (text == "/L0") {
       bot.sendMessage(chat_id, "Lampu Hidup", "");
+      float temperatur = 0;
+      ThingSpeak.setField(1, temperatur);
       kampu = LOW;
       digitalWrite(lampu, kampu);
       Serial.print(kampu);
     }
     if (text == "/L1") {
       bot.sendMessage(chat_id, "Lampu Mati", "");
+      float temperatur = 1;
+      ThingSpeak.setField(1, temperatur);
       kampu = HIGH;
       digitalWrite(lampu, kampu);
       Serial.print(kampu);
@@ -211,15 +226,16 @@ void pesanBaru(int nmrPesan) {
       digitalWrite(kipas, cipas);
       Serial.print(cipas);
     }
+    
     // Pompa
     if (text == "/P0") {
-      bot.sendMessage(chat_id, "Pompa / Support tegangan Hidup", "");
+      bot.sendMessage(chat_id, "Pompa Hidup", "");
       kompa = LOW;
       digitalWrite(pompa, kompa);
       Serial.print(kompa);
     }
     if (text == "/P1") {
-      bot.sendMessage(chat_id, "Pompa / Support tegangan Mati", "");
+      bot.sendMessage(chat_id, "Pompa Mati", "");
       kompa = HIGH;
       digitalWrite(pompa, kompa);
       Serial.print(kompa);
@@ -234,7 +250,5 @@ void pesanBaru(int nmrPesan) {
       bot.sendMessage(chat_id, "Kunci pintu tertutup", "");
       pintu.write(0);
     }
-
   }
-  
 }
